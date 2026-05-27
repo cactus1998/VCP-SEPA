@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEPA & VCP 股票量化診斷報告 - {{TICKER}}</title>
+    <!-- Google Fonts for professional typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #131722;       /* TradingView Dark background */
+            --bg-card: #1c2030;       /* High contrast card background */
+            --bg-card-header: #24293e;
+            --border-color: #2a2e39;   /* Clean grid borders */
+            --text-primary: #ffffff;   /* Pure white for headings */
+            --text-secondary: #d1d4dc; /* Highly readable silver-gray for text */
+            --text-muted: #787b86;     /* Neutral gray for captions */
+            --color-green: #089981;    /* Professional TradingView Green */
+            --color-red: #f23645;      /* Professional TradingView Red */
+            --color-orange: #f57c00;   /* Professional Warning Orange */
+            --color-blue: #2962ff;     /* Accent Blue */
+            --transition: all 0.2s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-secondary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.5;
+            padding: 2rem 1.5rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Header section */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .brand-icon {
+            background-color: var(--color-blue);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .brand-text h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .brand-text p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .ticker-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .ticker-badge {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .price-box {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+
+        .price-val {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .price-change {
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.125rem 0.35rem;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .change-up {
+            color: var(--color-green);
+            background-color: rgba(8, 153, 129, 0.1);
+        }
+
+        .change-down {
+            color: var(--color-red);
+            background-color: rgba(242, 54, 69, 0.1);
+        }
+
+        /* Summary Panel */
+        .summary-panel {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .summary-panel {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 8px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+
+        .score-circle.perfect {
+            border-color: var(--color-green);
+        }
+
+        .score-circle.good {
+            border-color: var(--color-orange);
+        }
+
+        .score-circle.bad {
+            border-color: var(--color-red);
+        }
+
+        .score-num {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .score-lbl {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .summary-text h2 {
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-text p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Layout Grid */
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .layout-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* General Card Styles */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-header {
+            background-color: var(--bg-card-header);
+            padding: 0.75rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-header h3 i {
+            color: var(--color-blue);
+        }
+
+        .card-body {
+            padding: 1.25rem;
+        }
+
+        /* 7 Trend Template Table styling */
+        .criteria-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .criteria-table th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            background-color: rgba(255, 255, 255, 0.02);
+            color: var(--text-primary);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .criteria-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+
+        .criteria-table tr:hover {
+            background-color: rgba(255, 255, 255, 0.01);
+        }
+
+        .badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .badge-pass {
+            background-color: rgba(8, 153, 129, 0.15);
+            color: var(--color-green);
+            border: 1px solid rgba(8, 153, 129, 0.3);
+        }
+
+        .badge-fail {
+            background-color: rgba(242, 54, 69, 0.15);
+            color: var(--color-red);
+            border: 1px solid rgba(242, 54, 69, 0.3);
+        }
+
+        .formula-box {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: var(--color-blue);
+            background-color: rgba(41, 98, 255, 0.05);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 0.25rem;
+        }
+
+        .data-comparison {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            color: var(--text-primary);
+        }
+
+        .step-num {
+            font-weight: 700;
+            color: var(--text-muted);
+            width: 25px;
+        }
+
+        .step-desc {
+            font-size: 0.825rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* VCP Contraction Section */
+        .vcp-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .vcp-table th {
+            text-align: left;
+            padding: 0.6rem 0.75rem;
+            color: var(--text-primary);
+            background-color: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+        }
+
+        .vcp-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .vcp-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .vcp-metric {
+            font-family: 'Fira Code', monospace;
+            font-weight: 600;
+        }
+
+        .vcp-dry-up {
+            color: var(--color-green);
+            font-weight: 600;
+        }
+
+        /* SVG Chart */
+        .chart-box {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: rgba(0, 0, 0, 0.1);
+            padding: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .chart-svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .legend-line {
+            width: 15px;
+            height: 2px;
+        }
+
+        /* Risk Plan & Interactive Calculator */
+        .plan-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px dotted var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        .plan-row:last-child {
+            border-bottom: none;
+        }
+
+        .plan-lbl {
+            color: var(--text-muted);
+        }
+
+        .plan-val {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .calculator-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 1.25rem;
+            margin-bottom: 0.75rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .input-group label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .input-group input {
+            background-color: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.4rem 0.6rem;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .input-group input:focus {
+            border-color: var(--color-blue);
+        }
+
+        .calc-result-box {
+            background-color: rgba(41, 98, 255, 0.05);
+            border: 1px dashed rgba(41, 98, 255, 0.3);
+            border-radius: 6px;
+            padding: 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .calc-result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+        }
+
+        .calc-result-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .calc-result-val {
+            font-weight: 700;
+            color: var(--color-blue);
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* Text Analysis Blocks */
+        .text-analysis {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .analysis-section-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 0.5rem;
+            border-left: 3px solid var(--color-blue);
+            padding-left: 0.5rem;
+        }
+
+        .analysis-section-title:first-child {
+            margin-top: 0;
+        }
+
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        /* Micro animation for ticker tick simulation */
+        @keyframes tickFlash {
+            0% { color: var(--color-green); }
+            50% { color: var(--text-primary); }
+            100% { color: var(--text-primary); }
+        }
+
+        .ticker-tick {
+            animation: tickFlash 3s infinite;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- Top Header -->
+    <header>
+        <div class="brand">
+            <div class="brand-icon"><i class="fa-solid fa-square-poll-vertical"></i></div>
+            <div class="brand-text">
+                <h1>AG QUANT SEPA SCREENER</h1>
+                <p>專業股票型態與趨勢量化診斷系統</p>
+            </div>
+        </div>
+        <div class="ticker-info">
+            <div class="ticker-badge">{{COMPANY_NAME}} ({{TICKER}})</div>
+            <div class="price-box">
+                <span class="price-val ticker-tick">${{PRICE}}</span>
+                <span class="price-change {{CHANGE_CLASS}}">{{CHANGE_SIGN}}{{CHANGE_PERCENT}}%</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Overall Assessment Summary -->
+    <section class="summary-panel">
+        <div class="score-circle {{SCORE_CLASS}}">
+            <span class="score-num">{{SCORE}} / 7</span>
+            <span class="score-lbl">評分門檻</span>
+        </div>
+        <div class="summary-text">
+            <h2>診斷結論：{{SUMMARY_TITLE}}</h2>
+            <p>{{SUMMARY_DESC}}</p>
+        </div>
+    </section>
+
+    <!-- Main Content Layout -->
+    <div class="layout-grid">
+        
+        <!-- Left Column: 7 Trend Template Detailed Explanations -->
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-list-ol"></i> 馬克．米奈爾維尼 7 大趨勢樣板過濾步驟</h3>
+                <span class="badge {{SCORE_CLASS_BADGE}}">{{SUMMARY_TITLE}}</span>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <table class="criteria-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%">#</th>
+                            <th style="width: 25%">篩選過濾指標</th>
+                            <th style="width: 45%">實際數值與比對公式</th>
+                            <th style="width: 15%">判定</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{7_TEMPLATE_ROWS}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Right Column: VCP Contraction & Risk Management -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            
+            <!-- VCP Analysis Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-wave-square"></i> VCP 波動收縮特徵診斷</h3>
+                </div>
+                <div class="card-body">
+                    
+                    <!-- SVG Price Graph -->
+                    <div class="chart-box">
+                        {{CHART_SVG}}
+                        <div class="chart-legend">
+                            <div class="legend-item"><span class="legend-line" style="background-color: #ffffff;"></span>股價</div>
+                            <div class="legend-item"><span class="legend-line" style="background-color: var(--color-green);"></span>50MA</div>
+                            <div class="legend-item"><span class="legend-line" style="background-color: var(--color-orange);"></span>150MA</div>
+                            <div class="legend-item"><span class="legend-line" style="background-color: var(--color-blue);"></span>200MA</div>
+                        </div>
+                    </div>
+
+                    <!-- Contractions Table -->
+                    <table class="vcp-table">
+                        <thead>
+                            <tr>
+                                <th>收縮波次</th>
+                                <th>回檔高點</th>
+                                <th>回檔低點</th>
+                                <th>振幅</th>
+                                <th>量能特徵</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{VCP_ROWS}}
+                        </tbody>
+                    </table>
+
+                    <div style="font-size: 0.8rem; color: var(--text-muted); background-color: rgba(255,255,255,0.01); padding: 0.75rem; border-radius: 4px; border: 1px solid var(--border-color);">
+                        <i class="fa-solid fa-circle-info" style="color: var(--color-blue); margin-right: 0.25rem;"></i>
+                        <strong>VCP 判定標準：</strong>整理區間由左至右出現 2 至 4 次價格收縮波，其振幅應呈遞減（如 $C1 > C2 > C3$），且每次收縮波底部的成交量必須顯著低於均量。
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk & Tactical Plan Card with dynamic calculator -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-shield-halved"></i> 交易風控與部位規劃</h3>
+                </div>
+                <div class="card-body">
+                    <div class="plan-row">
+                        <span class="plan-lbl">最新收盤價</span>
+                        <span class="plan-val">${{PRICE}}</span>
+                    </div>
+                    <div class="plan-row">
+                        <span class="plan-lbl">建議買入區間 (Pivot 平台)</span>
+                        <span class="plan-val">${{ENTRY_MIN}} - ${{ENTRY_MAX}}</span>
+                    </div>
+                    <div class="plan-row">
+                        <span class="plan-lbl">防守硬止損點 (失效點)</span>
+                        <span class="plan-val" style="color: var(--color-red);">${{STOP_LOSS}} ({{STOP_LOSS_PCT}}%)</span>
+                    </div>
+                    <div class="plan-row">
+                        <span class="plan-lbl">多頭第一目標價 (C1 對稱測幅)</span>
+                        <span class="plan-val" style="color: var(--color-green);">${{TARGET_PRICE}}</span>
+                    </div>
+                    <div class="plan-row">
+                        <span class="plan-lbl">預估風險報酬比 (R:R Ratio)</span>
+                        <span class="plan-val" style="color: var(--color-blue);">{{REWARD_RISK}} : 1</span>
+                    </div>
+
+                    <!-- Interactive Calculator -->
+                    <div class="calculator-title">
+                        <i class="fa-solid fa-calculator" style="color: var(--color-blue);"></i> 互動式部位規模風險計算器
+                    </div>
+                    <div class="calculator-grid">
+                        <div class="input-group">
+                            <label for="portfolioSize">帳戶總資金 ($)</label>
+                            <input type="number" id="portfolioSize" value="10000" oninput="calculatePosition()">
+                        </div>
+                        <div class="input-group">
+                            <label for="riskPct">單筆承受风险 (%)</label>
+                            <input type="number" id="riskPct" value="1" step="0.1" oninput="calculatePosition()">
+                        </div>
+                    </div>
+                    <div class="calc-result-box">
+                        <div class="calc-result-row">
+                            <span>單筆最大允收虧損額:</span>
+                            <span class="calc-result-val" id="riskAmt">$100.00</span>
+                        </div>
+                        <div class="calc-result-row">
+                            <span>買入股數 (基於成本價):</span>
+                            <span class="calc-result-val" id="sharesToBuy">0 股</span>
+                        </div>
+                        <div class="calc-result-row">
+                            <span>本筆交易總配置資金:</span>
+                            <span class="calc-result-val" id="allocationAmt">$0.00</span>
+                        </div>
+                        <div class="calc-result-row">
+                            <span>占總帳戶配置權重:</span>
+                            <span class="calc-result-val" id="allocationPct">0.00%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quantitative Analysis Text Commentary -->
+    <section class="card">
+        <div class="card-header">
+            <h3><i class="fa-solid fa-chart-column"></i> 量價細節與量化綜合診斷評語</h3>
+        </div>
+        <div class="card-body">
+            <div class="text-analysis">
+                <div class="analysis-section-title">量價配合特徵分析</div>
+                <p>{{VOLUME_ANALYSIS}}</p>
+                
+                <div class="analysis-section-title">均線排列與趨勢判定</div>
+                <p>{{TREND_ANALYSIS}}</p>
+
+                <div class="analysis-section-title">操作提醒與防禦纪律</div>
+                <p>{{DISCIPLINE_WARNING}}</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer & Disclaimer -->
+    <footer>
+        <p>© 2026 AG Quant Trading | 量化股票分析系統報告</p>
+        <p style="max-width: 1000px; margin: 0 auto; color: var(--text-muted); font-size: 0.7rem; line-height: 1.4;">
+            免責聲明：本報告所提供之量化數據、均線計算、波動收縮型態診斷及部位風險試算，僅作為馬克．米奈爾維尼（Mark Minervini）超級績效交易方法之學術研究與型態對比參考。本報告不構成任何個股買賣推薦、邀約或特定金融投資建議。金融市場交易具備極高風險，投資人應獨立評估交易風險，並自行承擔一切買賣決策後果。過去績效不代表未來獲利保證。
+        </p>
+    </footer>
+
+</div>
+
+<!-- Interactive JavaScript for Live Tick and Risk Calculator -->
+<script>
+    const lastClosePrice = {{PRICE}};
+    const stopLossPrice = {{STOP_LOSS}};
+    const stopLossPct = {{STOP_LOSS_PCT}}; // Negative number, e.g. -5.2
+
+    // Dynamic Position Size Calculator
+    function calculatePosition() {
+        const portfolioSize = parseFloat(document.getElementById('portfolioSize').value) || 0;
+        const riskPct = parseFloat(document.getElementById('riskPct').value) || 0;
+        
+        // Calculate max allowed loss amount ($)
+        const maxLossAmt = portfolioSize * (riskPct / 100);
+        document.getElementById('riskAmt').textContent = '$' + maxLossAmt.toFixed(2);
+        
+        // Per-share risk = Buy Price - Stop Loss Price
+        const perShareRisk = Math.abs(lastClosePrice - stopLossPrice);
+        
+        if (perShareRisk > 0) {
+            // Number of shares = Max Allowed Loss / Per-share risk
+            const shares = Math.floor(maxLossAmt / perShareRisk);
+            document.getElementById('sharesToBuy').textContent = shares.toLocaleString() + ' 股';
+            
+            // Total allocation amount = shares * Close Price
+            const allocation = shares * lastClosePrice;
+            document.getElementById('allocationAmt').textContent = '$' + allocation.toFixed(2);
+            
+            // Allocation weight of portfolio
+            const weight = portfolioSize > 0 ? (allocation / portfolioSize) * 100 : 0;
+            document.getElementById('allocationPct').textContent = weight.toFixed(2) + '%';
+        } else {
+            document.getElementById('sharesToBuy').textContent = 'N/A';
+            document.getElementById('allocationAmt').textContent = '$0.00';
+            document.getElementById('allocationPct').textContent = '0.00%';
+        }
+    }
+
+    // Trigger calculation on load
+    window.addEventListener('DOMContentLoaded', () => {
+        calculatePosition();
+    });
+
+    // Simulating minor price flicker for professional active dashboard feeling
+    setInterval(() => {
+        const priceEl = document.querySelector('.price-val');
+        if (priceEl) {
+            const rand = (Math.random() - 0.5) * 0.1;
+            const newPrice = (lastClosePrice + rand).toFixed(2);
+            priceEl.textContent = '$' + newPrice;
+        }
+    }, 4000);
+</script>
+
+</body>
+</html>

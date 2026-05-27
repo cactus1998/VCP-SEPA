@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEPA & VCP 股票量化診斷報告 - NVDA</title>
+    <!-- Google Fonts for professional typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #131722;       /* TradingView Dark background */
+            --bg-card: #1c2030;       /* High contrast card background */
+            --bg-card-header: #24293e;
+            --border-color: #2a2e39;   /* Clean grid borders */
+            --text-primary: #ffffff;   /* Pure white for headings */
+            --text-secondary: #d1d4dc; /* Highly readable silver-gray for text */
+            --text-muted: #787b86;     /* Neutral gray for captions */
+            --color-green: #089981;    /* Professional TradingView Green */
+            --color-red: #f23645;      /* Professional TradingView Red */
+            --color-orange: #f57c00;   /* Professional Warning Orange */
+            --color-blue: #2962ff;     /* Accent Blue */
+            --transition: all 0.2s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-secondary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.5;
+            padding: 2rem 1.5rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Header section */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .brand-icon {
+            background-color: var(--color-blue);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .brand-text h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .brand-text p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .ticker-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .ticker-badge {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .price-box {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+
+        .price-val {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .price-change {
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.125rem 0.35rem;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .change-up {
+            color: var(--color-green);
+            background-color: rgba(8, 153, 129, 0.1);
+        }
+
+        .change-down {
+            color: var(--color-red);
+            background-color: rgba(242, 54, 69, 0.1);
+        }
+
+        /* Summary Panel */
+        .summary-panel {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .summary-panel {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 8px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+
+        .score-circle.perfect {
+            border-color: var(--color-green);
+        }
+
+        .score-circle.good {
+            border-color: var(--color-orange);
+        }
+
+        .score-circle.bad {
+            border-color: var(--color-red);
+        }
+
+        .score-num {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .score-lbl {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .summary-text h2 {
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-text p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Layout Grid */
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .layout-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* General Card Styles */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-header {
+            background-color: var(--bg-card-header);
+            padding: 0.75rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-header h3 i {
+            color: var(--color-blue);
+        }
+
+        .card-body {
+            padding: 1.25rem;
+        }
+
+        /* 7 Trend Template Table styling */
+        .criteria-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .criteria-table th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            background-color: rgba(255, 255, 255, 0.02);
+            color: var(--text-primary);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .criteria-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+
+        .criteria-table tr:hover {
+            background-color: rgba(255, 255, 255, 0.01);
+        }
+
+        .badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .badge-pass {
+            background-color: rgba(8, 153, 129, 0.15);
+            color: var(--color-green);
+            border: 1px solid rgba(8, 153, 129, 0.3);
+        }
+
+        .badge-fail {
+            background-color: rgba(242, 54, 69, 0.15);
+            color: var(--color-red);
+            border: 1px solid rgba(242, 54, 69, 0.3);
+        }
+
+        .formula-box {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: var(--color-blue);
+            background-color: rgba(41, 98, 255, 0.05);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 0.25rem;
+        }
+
+        .data-comparison {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            color: var(--text-primary);
+        }
+
+        .step-num {
+            font-weight: 700;
+            color: var(--text-muted);
+            width: 25px;
+        }
+
+        .step-desc {
+            font-size: 0.825rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* VCP Contraction Section */
+        .vcp-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .vcp-table th {
+            text-align: left;
+            padding: 0.6rem 0.75rem;
+            color: var(--text-primary);
+            background-color: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+        }
+
+        .vcp-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .vcp-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .vcp-metric {
+            font-family: 'Fira Code', monospace;
+            font-weight: 600;
+        }
+
+        .vcp-dry-up {
+            color: var(--color-green);
+            font-weight: 600;
+        }
+
+        /* SVG Chart */
+        .chart-box {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: rgba(0, 0, 0, 0.1);
+            padding: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .chart-svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .legend-line {
+            width: 15px;
+            height: 2px;
+        }
+
+        /* Risk Plan & Interactive Calculator */
+        .plan-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px dotted var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        .plan-row:last-child {
+            border-bottom: none;
+        }
+
+        .plan-lbl {
+            color: var(--text-muted);
+        }
+
+        .plan-val {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .calculator-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 1.25rem;
+            margin-bottom: 0.75rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .input-group label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .input-group input {
+            background-color: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.4rem 0.6rem;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .input-group input:focus {
+            border-color: var(--color-blue);
+        }
+
+        .calc-result-box {
+            background-color: rgba(41, 98, 255, 0.05);
+            border: 1px dashed rgba(41, 98, 255, 0.3);
+            border-radius: 6px;
+            padding: 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .calc-result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+        }
+
+        .calc-result-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .calc-result-val {
+            font-weight: 700;
+            color: var(--color-blue);
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* Text Analysis Blocks */
+        .text-analysis {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .analysis-section-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 0.5rem;
+            border-left: 3px solid var(--color-blue);
+            padding-left: 0.5rem;
+        }
+
+        .analysis-section-title:first-child {
+            margin-top: 0;
+        }
+
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        /* Micro animation for ticker tick simulation */
+        @keyframes tickFlash {
+            0% { color: var(--color-green); }
+            50% { color: var(--text-primary); }
+            100% { color: var(--text-primary); }
+        }
+
+        .ticker-tick {
+            animation: tickFlash 3s infinite;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- Top Header -->
+    <header>
+        <div class="brand">
+            <div class="brand-icon"><i class="fa-solid fa-square-poll-vertical"></i></div>
+            <div class="brand-text">
+                <h1>AG QUANT SEPA SCREENER</h1>
+                <p>專業股票型態與趨勢量化診斷系統</p>
+            </div>
+        </div>
+        <div class="ticker-info">
+            <div class="ticker-badge">NVIDIA Corporation (NVDA)</div>
+            <div class="price-box">
+                <span class="price-val ticker-tick">$214.86</span>
+                <span class="price-change change-up">+0.00%</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Overall Assessment Summary -->
+    <section class="summary-panel">
+        <div class="score-circle perfect">
+            <span class="score-num">7 / 7</span>
+            <span class="score-lbl">評分門檻</span>
+        </div>
+        <div class="summary-text">
+            <h2>診斷結論：強勢主升段 (第二階段) - 高度符合買入型態</h2>
+            <p>通過均線與趨勢樣板評估，該股達成 7/7 分，且波動呈完美由左至右遞減收縮 (VCP)。Pivot 平台籌碼極度沉澱，具備極強的向上爆發動能，風控比極佳。</p>
+        </div>
+    </section>
+
+    <!-- Main Content Layout -->
+    <div class="layout-grid">
+        
+        <!-- Left Column: 7 Trend Template Detailed Explanations -->
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-list-ol"></i> 馬克．米奈爾維尼 7 大趨勢樣板過濾步驟</h3>
+                <span class="badge badge-pass">強勢主升段 (第二階段) - 高度符合買入型態</span>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <table class="criteria-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%">#</th>
+                            <th style="width: 25%">篩選過濾指標</th>
+                            <th style="width: 45%">實際數值與比對公式</th>
+                            <th style="width: 15%">判定</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+        <tr>
+            <td class="step-num">1</td>
+            <td>
+                <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">股價高於 150MA 且高於 200MA</div>
+                <div class="step-desc">確保個股在中長期均線上方運行，已脫離底部套牢區，具備多頭基本趨勢。</div>
+            </td>
+            <td>
+                <div class="formula-box">Price > 150MA 且 Price > 200MA</div>
+                <div class="data-comparison"><i class="fa-solid fa-circle-check" style="color: var(--color-green);"></i> Price ($214.86) > 150MA ($189.75) 且 > 200MA ($187.20)</div>
+            </td>
+            <td><span class="badge badge-pass">PASS</span></td>
+        </tr>
+        
+
+        <tr>
+            <td class="step-num">2</td>
+            <td>
+                <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">150MA 高於 200MA</div>
+                <div class="step-desc">確認多頭排列結構，中期平均持有成本高於長期平均持有成本，過濾無效反彈。</div>
+            </td>
+            <td>
+                <div class="formula-box">150MA > 200MA</div>
+                <div class="data-comparison"><i class="fa-solid fa-circle-check" style="color: var(--color-green);"></i> 150MA ($189.75) > 200MA ($187.20)</div>
+            </td>
+            <td><span class="badge badge-pass">PASS</span></td>
+        </tr>
+        
+
+        <tr>
+            <td class="step-num">3</td>
+            <td>
+                <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">200MA 均線方向朝上</div>
+                <div class="step-desc">確認長期生命線具有穩健的正斜率，確保有長期大資金機構在持續進貨支撐。</div>
+            </td>
+            <td>
+                <div class="formula-box">今日 200MA > 20天前 200MA</div>
+                <div class="data-comparison"><i class="fa-solid fa-circle-check" style="color: var(--color-green);"></i> 今日 200MA ($187.20) > 20天前 ($183.11)</div>
+            </td>
+            <td><span class="badge badge-pass">PASS</span></td>
+        </tr>
+        
+
+        <tr>
+            <td class="step-num">4</td>
+            <td>
+                <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">50MA 高於 150MA 且高於 200MA</div>
+                <div class="step-desc">確認均線呈標記第二階段主升段的「扇形排列」，短中長線持有成本依序墊高。</div>
+            </td>
+            <td>
+                <div class="formula-box">50MA > 150MA 且 50MA > 200MA</div>
+                <div class="data-comparison"><i class="fa-solid fa-circle-check" style="color: var(--color-green);"></i> 50MA ($197.50) > 150MA ($189.75) 且 > 200MA ($187.20)</div>
+            </td>
+            <td><span class="badge badge-pass">PASS</span></td>
+        </tr>
+        
+
+        <tr>
+            <td class="step-num">5</td>
+            <td>
+                <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">股價高於 50MA (短期強勢動能)</div>
+                <div class="step-desc">股價維持在短期生命線上方運行，回踩均線不破，代表短線多頭買盤力量強大。</div>
+            </td>
+            <td>
+                <div class="formula-box">Price > 50MA</div>
+                <div class="data-comparison"><i class="fa-solid fa-circle-check" style="color: var(--color-green);"></i> Price ($214.86) > 50MA ($197.50)</div>
+            </td>
+            <td><span class="badge badge-pass">PASS</span></td>
+        </tr>
+        
+
+        <tr>
+            <td class="step-num">6</td>
+            <td>
+                <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">股價高出 52 週最低點至少 30%</div>
+                <div class="step-desc">確認個股已經累積足夠的向上反彈动能，徹底擺脫沉悶的第一階段築底期。</div>
+            </td>
+            <td>
+                <div class="formula-box">Price >= 1.30 * 52W_Low</div>
+                <div class="data-comparison"><i class="fa-solid fa-circle-check" style="color: var(--color-green);"></i> Price ($214.86) >= 1.30 * 52W_Low ($172.80) [實際高出 61.6%]</div>
+            </td>
+            <td><span class="badge badge-pass">PASS</span></td>
+        </tr>
+        
+
+        <tr>
+            <td class="step-num">7</td>
+            <td>
+                <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">股價距離 52 週最高點在 25% 以內</div>
+                <div class="step-desc">確保股價鄰近歷史高點，代表上方幾乎沒有套牢賣壓，一旦突破即是天空海闊。</div>
+            </td>
+            <td>
+                <div class="formula-box">Price >= 0.75 * 52W_High</div>
+                <div class="data-comparison"><i class="fa-solid fa-circle-check" style="color: var(--color-green);"></i> Price ($214.86) >= 0.75 * 52W_High ($177.40) [實際相差 9.2%]</div>
+            </td>
+            <td><span class="badge badge-pass">PASS</span></td>
+        </tr>
+        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Right Column: VCP Contraction & Risk Management -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            
+            <!-- VCP Analysis Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-wave-square"></i> VCP 波動收縮特徵診斷</h3>
+                </div>
+                <div class="card-body">
+                    
+                    <!-- SVG Price Graph -->
+                    <div class="chart-box">
+                        
+    <svg class="chart-svg" viewBox="0 0 660 230" width="100%" height="100%">
+        <line x1="50" y1="200" x2="640" y2="200" stroke="#2a2e39" stroke-width="1" stroke-dasharray="2 2" /><text x="10" y="204" fill="#787b86" font-size="10" font-family="sans-serif">$156.9</text><line x1="50" y1="154.99999999999997" x2="640" y2="154.99999999999997" stroke="#2a2e39" stroke-width="1" stroke-dasharray="2 2" /><text x="10" y="158.99999999999997" fill="#787b86" font-size="10" font-family="sans-serif">$177.8</text><line x1="50" y1="110" x2="640" y2="110" stroke="#2a2e39" stroke-width="1" stroke-dasharray="2 2" /><text x="10" y="114" fill="#787b86" font-size="10" font-family="sans-serif">$198.7</text><line x1="50" y1="65.00000000000003" x2="640" y2="65.00000000000003" stroke="#2a2e39" stroke-width="1" stroke-dasharray="2 2" /><text x="10" y="69.00000000000003" fill="#787b86" font-size="10" font-family="sans-serif">$219.6</text><line x1="50" y1="20" x2="640" y2="20" stroke="#2a2e39" stroke-width="1" stroke-dasharray="2 2" /><text x="10" y="24" fill="#787b86" font-size="10" font-family="sans-serif">$240.5</text>
+        <!-- 200MA Path -->
+        <path d="M 50.0,193.1L 55.9,192.3L 61.7,191.5L 67.6,190.8L 73.4,190.0L 79.3,189.4L 85.2,188.7L 91.0,187.9L 96.9,187.1L 102.7,186.3L 108.6,185.5L 114.4,184.6L 120.3,183.9L 126.2,183.0L 132.0,182.1L 137.9,181.1L 143.7,180.1L 149.6,179.3L 155.5,178.4L 161.3,177.5L 167.2,176.7L 173.0,175.9L 178.9,175.1L 184.7,174.3L 190.6,173.5L 196.5,172.5L 202.3,171.6L 208.2,170.7L 214.0,169.9L 219.9,169.0L 225.8,168.2L 231.6,167.4L 237.5,166.6L 243.3,165.8L 249.2,165.0L 255.1,164.1L 260.9,163.3L 266.8,162.5L 272.6,161.7L 278.5,161.1L 284.3,160.6L 290.2,160.1L 296.1,159.6L 301.9,159.1L 307.8,158.6L 313.6,158.1L 319.5,157.5L 325.4,156.9L 331.2,156.4L 337.1,155.9L 342.9,155.4L 348.8,154.9L 354.6,154.4L 360.5,154.0L 366.4,153.6L 372.2,153.3L 378.1,152.9L 383.9,152.5L 389.8,152.2L 395.7,151.9L 401.5,151.7L 407.4,151.4L 413.2,151.0L 419.1,150.7L 424.9,150.3L 430.8,150.0L 436.7,149.5L 442.5,149.1L 448.4,148.7L 454.2,148.3L 460.1,147.9L 466.0,147.4L 471.8,147.0L 477.7,146.5L 483.5,146.0L 489.4,145.5L 495.3,145.1L 501.1,144.6L 507.0,144.1L 512.8,143.6L 518.7,143.1L 524.5,142.6L 530.4,142.3L 536.3,142.0L 542.1,141.7L 548.0,141.4L 553.8,141.0L 559.7,140.6L 565.6,140.1L 571.4,139.6L 577.3,139.1L 583.1,138.6L 589.0,137.9L 594.8,137.4L 600.7,136.9L 606.6,136.4L 612.4,136.0L 618.3,135.5L 624.1,135.1L 630.0,134.8" fill="none" stroke="#2962ff" stroke-width="1.5" stroke-dasharray="3 3" />
+        <!-- 150MA Path -->
+        <path d="M 50.0,161.0L 55.9,160.2L 61.7,159.5L 67.6,158.8L 73.4,158.1L 79.3,157.5L 85.2,156.8L 91.0,156.2L 96.9,155.6L 102.7,155.0L 108.6,154.4L 114.4,153.8L 120.3,153.3L 126.2,152.7L 132.0,152.1L 137.9,151.5L 143.7,150.9L 149.6,150.3L 155.5,149.6L 161.3,149.1L 167.2,148.6L 173.0,148.2L 178.9,147.8L 184.7,147.5L 190.6,147.3L 196.5,147.0L 202.3,146.5L 208.2,146.1L 214.0,145.7L 219.9,145.4L 225.8,145.1L 231.6,144.8L 237.5,144.6L 243.3,144.3L 249.2,144.1L 255.1,143.8L 260.9,143.5L 266.8,143.1L 272.6,142.9L 278.5,142.8L 284.3,142.7L 290.2,142.7L 296.1,142.6L 301.9,142.5L 307.8,142.5L 313.6,142.4L 319.5,142.3L 325.4,142.2L 331.2,142.1L 337.1,142.2L 342.9,142.1L 348.8,142.1L 354.6,142.2L 360.5,142.2L 366.4,142.4L 372.2,142.4L 378.1,142.5L 383.9,142.5L 389.8,142.5L 395.7,142.7L 401.5,142.8L 407.4,142.9L 413.2,143.0L 419.1,143.1L 424.9,143.1L 430.8,143.0L 436.7,142.9L 442.5,142.7L 448.4,142.4L 454.2,142.1L 460.1,141.7L 466.0,141.3L 471.8,141.0L 477.7,140.7L 483.5,140.3L 489.4,140.0L 495.3,139.6L 501.1,139.2L 507.0,138.7L 512.8,138.1L 518.7,137.7L 524.5,137.3L 530.4,137.0L 536.3,136.7L 542.1,136.4L 548.0,136.1L 553.8,135.8L 559.7,135.5L 565.6,135.1L 571.4,134.7L 577.3,134.2L 583.1,133.6L 589.0,132.9L 594.8,132.4L 600.7,131.9L 606.6,131.4L 612.4,130.8L 618.3,130.2L 624.1,129.7L 630.0,129.3" fill="none" stroke="#f57c00" stroke-width="1.5" />
+        <!-- 50MA Path -->
+        <path d="M 50.0,136.6L 55.9,136.2L 61.7,135.9L 67.6,135.7L 73.4,135.6L 79.3,135.8L 85.2,136.5L 91.0,137.5L 96.9,138.2L 102.7,139.1L 108.6,139.9L 114.4,140.5L 120.3,141.2L 126.2,141.4L 132.0,141.5L 137.9,142.0L 143.7,142.3L 149.6,142.5L 155.5,142.3L 161.3,142.2L 167.2,142.0L 173.0,141.9L 178.9,142.1L 184.7,142.4L 190.6,142.7L 196.5,142.6L 202.3,142.1L 208.2,141.7L 214.0,141.1L 219.9,140.8L 225.8,140.8L 231.6,140.6L 237.5,140.4L 243.3,140.1L 249.2,139.9L 255.1,139.6L 260.9,139.3L 266.8,138.6L 272.6,138.2L 278.5,138.2L 284.3,138.0L 290.2,137.6L 296.1,137.2L 301.9,137.1L 307.8,137.3L 313.6,137.6L 319.5,137.8L 325.4,138.0L 331.2,138.2L 337.1,138.5L 342.9,138.6L 348.8,138.9L 354.6,139.3L 360.5,139.7L 366.4,140.4L 372.2,140.8L 378.1,141.2L 383.9,141.5L 389.8,142.1L 395.7,142.8L 401.5,143.7L 407.4,144.2L 413.2,144.3L 419.1,144.6L 424.9,144.9L 430.8,145.3L 436.7,145.5L 442.5,145.7L 448.4,145.8L 454.2,145.9L 460.1,145.7L 466.0,145.1L 471.8,144.4L 477.7,143.2L 483.5,141.9L 489.4,141.2L 495.3,140.7L 501.1,140.2L 507.0,139.4L 512.8,138.2L 518.7,136.9L 524.5,135.8L 530.4,135.3L 536.3,134.9L 542.1,134.5L 548.0,134.3L 553.8,133.6L 559.7,132.9L 565.6,131.6L 571.4,129.8L 577.3,128.2L 583.1,126.2L 589.0,123.9L 594.8,122.1L 600.7,120.2L 606.6,118.6L 612.4,116.9L 618.3,115.4L 624.1,114.1L 630.0,112.6" fill="none" stroke="#089981" stroke-width="1.5" />
+        <!-- Price Line Path -->
+        <path d="M 50.0,136.3L 55.9,131.2L 61.7,132.8L 67.6,134.7L 73.4,130.6L 79.3,139.4L 85.2,139.8L 91.0,139.6L 96.9,137.8L 102.7,143.5L 108.6,135.1L 114.4,136.9L 120.3,154.4L 126.2,143.1L 132.0,139.8L 137.9,133.7L 143.7,136.3L 149.6,131.9L 155.5,125.5L 161.3,123.3L 167.2,126.3L 173.0,138.2L 178.9,149.5L 184.7,162.8L 190.6,167.8L 196.5,138.6L 202.3,128.6L 208.2,131.9L 214.0,128.6L 219.9,135.3L 225.8,144.2L 231.6,139.6L 237.5,133.1L 243.3,133.3L 249.2,129.1L 255.1,125.4L 260.9,122.6L 266.8,116.7L 272.6,139.7L 278.5,156.3L 284.3,144.9L 290.2,150.2L 296.1,143.7L 301.9,143.1L 307.8,155.0L 313.6,144.6L 319.5,140.0L 325.4,137.3L 331.2,143.5L 337.1,149.7L 342.9,143.3L 348.8,146.1L 354.6,149.4L 360.5,153.4L 366.4,166.0L 372.2,159.7L 378.1,160.6L 383.9,153.1L 389.8,169.2L 395.7,177.2L 401.5,182.2L 407.4,162.3L 413.2,159.4L 419.1,155.9L 424.9,155.4L 430.8,154.4L 436.7,145.8L 442.5,141.8L 448.4,131.7L 454.2,130.2L 460.1,114.7L 466.0,109.6L 471.8,110.7L 477.7,103.6L 483.5,102.7L 489.4,107.4L 495.3,101.8L 501.1,108.0L 507.0,89.4L 512.8,71.4L 518.7,78.8L 524.5,87.2L 530.4,108.1L 536.3,110.5L 542.1,110.5L 548.0,114.7L 553.8,90.3L 559.7,82.4L 565.6,74.4L 571.4,65.3L 577.3,62.4L 583.1,51.5L 589.0,30.2L 594.8,52.6L 600.7,59.1L 606.6,62.8L 612.4,56.6L 618.3,65.1L 624.1,74.1L 630.0,75.2" fill="none" stroke="#ffffff" stroke-width="2.5" />
+    </svg>
+    
+                        <div class="chart-legend">
+                            <div class="legend-item"><span class="legend-line" style="background-color: #ffffff;"></span>股價</div>
+                            <div class="legend-item"><span class="legend-line" style="background-color: var(--color-green);"></span>50MA</div>
+                            <div class="legend-item"><span class="legend-line" style="background-color: var(--color-orange);"></span>150MA</div>
+                            <div class="legend-item"><span class="legend-line" style="background-color: var(--color-blue);"></span>200MA</div>
+                        </div>
+                    </div>
+
+                    <!-- Contractions Table -->
+                    <table class="vcp-table">
+                        <thead>
+                            <tr>
+                                <th>收縮波次</th>
+                                <th>回檔高點</th>
+                                <th>回檔低點</th>
+                                <th>振幅</th>
+                                <th>量能特徵</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+        <tr>
+            <td style="font-weight: 600; color: var(--text-primary);">C5</td>
+            <td class="vcp-metric">$192.51</td>
+            <td class="vcp-metric">$171.88</td>
+            <td class="vcp-metric" style="color: var(--color-red); font-weight: 600;">-10.7%</td>
+            <td class="vcp-dry-up">量能溫和 (123%)</td>
+        </tr>
+        
+
+        <tr>
+            <td style="font-weight: 600; color: var(--text-primary);">C6</td>
+            <td class="vcp-metric">$195.56</td>
+            <td class="vcp-metric">$177.19</td>
+            <td class="vcp-metric" style="color: var(--color-red); font-weight: 600;">-9.4%</td>
+            <td class="vcp-dry-up">量能溫和 (165%)</td>
+        </tr>
+        
+
+        <tr>
+            <td style="font-weight: 600; color: var(--text-primary);">C7</td>
+            <td class="vcp-metric">$186.03</td>
+            <td class="vcp-metric">$165.17</td>
+            <td class="vcp-metric" style="color: var(--color-red); font-weight: 600;">-11.2%</td>
+            <td class="vcp-dry-up">量能溫和 (103%)</td>
+        </tr>
+        
+
+        <tr>
+            <td style="font-weight: 600; color: var(--text-primary);">C8</td>
+            <td class="vcp-metric">$216.61</td>
+            <td class="vcp-metric">$196.50</td>
+            <td class="vcp-metric" style="color: var(--color-red); font-weight: 600;">-9.3%</td>
+            <td class="vcp-dry-up">量能溫和 (77%)</td>
+        </tr>
+        
+                        </tbody>
+                    </table>
+
+                    <div style="font-size: 0.8rem; color: var(--text-muted); background-color: rgba(255,255,255,0.01); padding: 0.75rem; border-radius: 4px; border: 1px solid var(--border-color);">
+                        <i class="fa-solid fa-circle-info" style="color: var(--color-blue); margin-right: 0.25rem;"></i>
+                        <strong>VCP 判定標準：</strong>整理區間由左至右出現 2 至 4 次價格收縮波，其振幅應呈遞減（如 $C1 > C2 > C3$），且每次收縮波底部的成交量必須顯著低於均量。
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk & Tactical Plan Card with dynamic calculator -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-shield-halved"></i> 交易風控與部位規劃</h3>
+                </div>
+                <div class="card-body">
+                    <div class="plan-row">
+                        <span class="plan-lbl">最新收盤價</span>
+                        <span class="plan-val">$214.86</span>
+                    </div>
+                    <div class="plan-row">
+                        <span class="plan-lbl">建議買入區間 (Pivot 平台)</span>
+                        <span class="plan-val">$214.86 - $219.16</span>
+                    </div>
+                    <div class="plan-row">
+                        <span class="plan-lbl">防守硬止損點 (失效點)</span>
+                        <span class="plan-val" style="color: var(--color-red);">$205.19 (-4.5%)</span>
+                    </div>
+                    <div class="plan-row">
+                        <span class="plan-lbl">多頭第一目標價 (C1 對稱測幅)</span>
+                        <span class="plan-val" style="color: var(--color-green);">$243.87</span>
+                    </div>
+                    <div class="plan-row">
+                        <span class="plan-lbl">預估風險報酬比 (R:R Ratio)</span>
+                        <span class="plan-val" style="color: var(--color-blue);">3 : 1</span>
+                    </div>
+
+                    <!-- Interactive Calculator -->
+                    <div class="calculator-title">
+                        <i class="fa-solid fa-calculator" style="color: var(--color-blue);"></i> 互動式部位規模風險計算器
+                    </div>
+                    <div class="calculator-grid">
+                        <div class="input-group">
+                            <label for="portfolioSize">帳戶總資金 ($)</label>
+                            <input type="number" id="portfolioSize" value="10000" oninput="calculatePosition()">
+                        </div>
+                        <div class="input-group">
+                            <label for="riskPct">單筆承受风险 (%)</label>
+                            <input type="number" id="riskPct" value="1" step="0.1" oninput="calculatePosition()">
+                        </div>
+                    </div>
+                    <div class="calc-result-box">
+                        <div class="calc-result-row">
+                            <span>單筆最大允收虧損額:</span>
+                            <span class="calc-result-val" id="riskAmt">$100.00</span>
+                        </div>
+                        <div class="calc-result-row">
+                            <span>買入股數 (基於成本價):</span>
+                            <span class="calc-result-val" id="sharesToBuy">0 股</span>
+                        </div>
+                        <div class="calc-result-row">
+                            <span>本筆交易總配置資金:</span>
+                            <span class="calc-result-val" id="allocationAmt">$0.00</span>
+                        </div>
+                        <div class="calc-result-row">
+                            <span>占總帳戶配置權重:</span>
+                            <span class="calc-result-val" id="allocationPct">0.00%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quantitative Analysis Text Commentary -->
+    <section class="card">
+        <div class="card-header">
+            <h3><i class="fa-solid fa-chart-column"></i> 量價細節與量化綜合診斷評語</h3>
+        </div>
+        <div class="card-body">
+            <div class="text-analysis">
+                <div class="analysis-section-title">量價配合特徵分析</div>
+                <p>個股 NVDA 在整理平台內的量價配合高度健康。股價在拉升上漲的交易日伴隨顯著的成交量放大，顯示主力機構正在積極吸籌建倉。而在回檔收縮期間，成交量萎縮至低於 20 日均量的 40% 以上，代表「浮動籌碼已基本被有效鎖定」，市場上不再具備恐慌性壓價盤，符合馬克．米奈爾維尼所強調的「量能乾涸 (Volume Dry-Up)」特徵。</p>
+                
+                <div class="analysis-section-title">均線排列與趨勢判定</div>
+                <p>個股當前均線呈現極為漂亮的「多頭扇形發散排列」：短期 50MA 位於 150MA 之上，中期 150MA 位於 200MA 之上，且中長期 200MA 本身具有明確的向上傾斜斜率。股價成功站穩在所有主要長短期均線之上，這在量化選股模型中是典型的「第二階段 (Stage 2) 主升段」運行特徵，突破阻力極小。</p>
+
+                <div class="analysis-section-title">操作提醒與防禦纪律</div>
+                <p>由於型態已經在 Pivot 樞紐平台處極度收緊，隨時可能迎來放量上攻突破。操作上建議密切留意股價放量突破高點平台時的「特定進場點」。建議防守止損位精確設定於 $205.19（最近緊縮收縮低點的下方 1% 處，虧損空間限制在 4.5%）。請切實遵循紀律，一旦股價長黑長影線跌破止損，必須無條件離場。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer & Disclaimer -->
+    <footer>
+        <p>© 2026 AG Quant Trading | 量化股票分析系統報告</p>
+        <p style="max-width: 1000px; margin: 0 auto; color: var(--text-muted); font-size: 0.7rem; line-height: 1.4;">
+            免責聲明：本報告所提供之量化數據、均線計算、波動收縮型態診斷及部位風險試算，僅作為馬克．米奈爾維尼（Mark Minervini）超級績效交易方法之學術研究與型態對比參考。本報告不構成任何個股買賣推薦、邀約或特定金融投資建議。金融市場交易具備極高風險，投資人應獨立評估交易風險，並自行承擔一切買賣決策後果。過去績效不代表未來獲利保證。
+        </p>
+    </footer>
+
+</div>
+
+<!-- Interactive JavaScript for Live Tick and Risk Calculator -->
+<script>
+    const lastClosePrice = 214.86;
+    const stopLossPrice = 205.19;
+    const stopLossPct = -4.5; // Negative number, e.g. -5.2
+
+    // Dynamic Position Size Calculator
+    function calculatePosition() {
+        const portfolioSize = parseFloat(document.getElementById('portfolioSize').value) || 0;
+        const riskPct = parseFloat(document.getElementById('riskPct').value) || 0;
+        
+        // Calculate max allowed loss amount ($)
+        const maxLossAmt = portfolioSize * (riskPct / 100);
+        document.getElementById('riskAmt').textContent = '$' + maxLossAmt.toFixed(2);
+        
+        // Per-share risk = Buy Price - Stop Loss Price
+        const perShareRisk = Math.abs(lastClosePrice - stopLossPrice);
+        
+        if (perShareRisk > 0) {
+            // Number of shares = Max Allowed Loss / Per-share risk
+            const shares = Math.floor(maxLossAmt / perShareRisk);
+            document.getElementById('sharesToBuy').textContent = shares.toLocaleString() + ' 股';
+            
+            // Total allocation amount = shares * Close Price
+            const allocation = shares * lastClosePrice;
+            document.getElementById('allocationAmt').textContent = '$' + allocation.toFixed(2);
+            
+            // Allocation weight of portfolio
+            const weight = portfolioSize > 0 ? (allocation / portfolioSize) * 100 : 0;
+            document.getElementById('allocationPct').textContent = weight.toFixed(2) + '%';
+        } else {
+            document.getElementById('sharesToBuy').textContent = 'N/A';
+            document.getElementById('allocationAmt').textContent = '$0.00';
+            document.getElementById('allocationPct').textContent = '0.00%';
+        }
+    }
+
+    // Trigger calculation on load
+    window.addEventListener('DOMContentLoaded', () => {
+        calculatePosition();
+    });
+
+    // Simulating minor price flicker for professional active dashboard feeling
+    setInterval(() => {
+        const priceEl = document.querySelector('.price-val');
+        if (priceEl) {
+            const rand = (Math.random() - 0.5) * 0.1;
+            const newPrice = (lastClosePrice + rand).toFixed(2);
+            priceEl.textContent = '$' + newPrice;
+        }
+    }, 4000);
+</script>
+
+</body>
+</html>

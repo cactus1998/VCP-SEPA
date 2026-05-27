@@ -1,0 +1,191 @@
+
+    <!DOCTYPE html>
+    <html lang="zh-TW">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>AG QUANT SEPA 股票篩選量化儀表板</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <style>
+            body {
+                background-color: #131722;
+                color: #d1d4dc;
+                font-family: 'Inter', sans-serif;
+                padding: 2rem;
+            }
+            .container {
+                max-width: 1000px;
+                margin: 0 auto;
+            }
+            header {
+                border-bottom: 1px solid #2a2e39;
+                padding-bottom: 1.5rem;
+                margin-bottom: 2rem;
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+            .brand-icon {
+                background-color: #2962ff;
+                color: white;
+                width: 45px;
+                height: 45px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+            }
+            h1 { color: #fff; font-size: 1.5rem; }
+            .card {
+                background-color: #1c2030;
+                border: 1px solid #2a2e39;
+                border-radius: 8px;
+                padding: 1.5rem;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                text-align: left;
+            }
+            th {
+                padding: 0.75rem 1rem;
+                background-color: rgba(255, 255, 255, 0.02);
+                color: #fff;
+                font-weight: 600;
+                border-bottom: 1px solid #2a2e39;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <div class="brand-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <div>
+                    <h1>AG QUANT SEPA 股票篩選量化儀表板</h1>
+                    <p style="font-size: 0.8rem; color: #787b86; margin-top: 0.25rem;">馬克．米奈爾維尼主升段均線篩選結果列表</p>
+                </div>
+            </header>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>股票代碼</th>
+                            <th>收盤價</th>
+                            <th>均線樣板評分</th>
+                            <th>診斷狀態</th>
+                            <th>分析報告</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+        <tr style="border-bottom: 1px solid #2a2e39;">
+            <td style="padding: 1rem; font-weight: bold;">1</td>
+            <td style="padding: 1rem; font-weight: bold; color: #fff;">NVDA</td>
+            <td style="padding: 1rem; font-family: monospace;">$215.33</td>
+            <td style="padding: 1rem; color: var(--color-green); font-weight: bold; font-size: 1.1rem;">7 / 7</td>
+            <td style="padding: 1rem;"><span style="display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background-color: rgba(8, 153, 129, 0.15); color: var(--color-green); border: 1px solid rgba(8, 153, 129, 0.3);">強勢主升段 (第二階段) - 高度符合買入型態</span></td>
+            <td style="padding: 1rem;"><a href="./nvda_vcp_analysis.html" style="color: #2962ff; text-decoration: none; font-weight: 600;">打開深度報告 <i class="fa-solid fa-arrow-up-right-from-square"></i></a></td>
+        </tr>
+        
+
+        <tr style="border-bottom: 1px solid #2a2e39;">
+            <td style="padding: 1rem; font-weight: bold;">2</td>
+            <td style="padding: 1rem; font-weight: bold; color: #fff;">AAPL</td>
+            <td style="padding: 1rem; font-family: monospace;">$308.82</td>
+            <td style="padding: 1rem; color: var(--color-green); font-weight: bold; font-size: 1.1rem;">7 / 7</td>
+            <td style="padding: 1rem;"><span style="display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background-color: rgba(8, 153, 129, 0.15); color: var(--color-green); border: 1px solid rgba(8, 153, 129, 0.3);">強勢主升段 (第二階段) - 高度符合買入型態</span></td>
+            <td style="padding: 1rem;"><a href="./aapl_vcp_analysis.html" style="color: #2962ff; text-decoration: none; font-weight: 600;">打開深度報告 <i class="fa-solid fa-arrow-up-right-from-square"></i></a></td>
+        </tr>
+        
+
+        <tr style="border-bottom: 1px solid #2a2e39;">
+            <td style="padding: 1rem; font-weight: bold;">3</td>
+            <td style="padding: 1rem; font-weight: bold; color: #fff;">MSFT</td>
+            <td style="padding: 1rem; font-family: monospace;">$418.57</td>
+            <td style="padding: 1rem; color: var(--color-red); font-size: 1.1rem;">2 / 7</td>
+            <td style="padding: 1rem;"><span style="display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background-color: rgba(242, 54, 69, 0.15); color: var(--color-red); border: 1px solid rgba(242, 54, 69, 0.3);">非多頭主升段 (非交易區間) - 觀望不宜介入</span></td>
+            <td style="padding: 1rem;"><a href="./msft_vcp_analysis.html" style="color: #2962ff; text-decoration: none; font-weight: 600;">打開深度報告 <i class="fa-solid fa-arrow-up-right-from-square"></i></a></td>
+        </tr>
+        
+
+        <tr style="border-bottom: 1px solid #2a2e39;">
+            <td style="padding: 1rem; font-weight: bold;">4</td>
+            <td style="padding: 1rem; font-weight: bold; color: #fff;">GOOG</td>
+            <td style="padding: 1rem; font-family: monospace;">$379.38</td>
+            <td style="padding: 1rem; color: var(--color-green); font-weight: bold; font-size: 1.1rem;">7 / 7</td>
+            <td style="padding: 1rem;"><span style="display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background-color: rgba(8, 153, 129, 0.15); color: var(--color-green); border: 1px solid rgba(8, 153, 129, 0.3);">強勢主升段 (第二階段) - 高度符合買入型態</span></td>
+            <td style="padding: 1rem;"><a href="./goog_vcp_analysis.html" style="color: #2962ff; text-decoration: none; font-weight: 600;">打開深度報告 <i class="fa-solid fa-arrow-up-right-from-square"></i></a></td>
+        </tr>
+        
+
+        <tr style="border-bottom: 1px solid #2a2e39;">
+            <td style="padding: 1rem; font-weight: bold;">5</td>
+            <td style="padding: 1rem; font-weight: bold; color: #fff;">TSLA</td>
+            <td style="padding: 1rem; font-family: monospace;">$426.01</td>
+            <td style="padding: 1rem; color: var(--color-orange); font-weight: bold; font-size: 1.1rem;">6 / 7</td>
+            <td style="padding: 1rem;"><span style="display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background-color: rgba(245, 124, 0, 0.15); color: var(--color-orange); border: 1px solid rgba(245, 124, 0, 0.3);">趨勢偏多整理段 - 候選追蹤個股</span></td>
+            <td style="padding: 1rem;"><a href="./tsla_vcp_analysis.html" style="color: #2962ff; text-decoration: none; font-weight: 600;">打開深度報告 <i class="fa-solid fa-arrow-up-right-from-square"></i></a></td>
+        </tr>
+        
+
+        <tr style="border-bottom: 1px solid #2a2e39;">
+            <td style="padding: 1rem; font-weight: bold;">6</td>
+            <td style="padding: 1rem; font-weight: bold; color: #fff;">META</td>
+            <td style="padding: 1rem; font-family: monospace;">$610.26</td>
+            <td style="padding: 1rem; color: var(--color-red); font-size: 1.1rem;">1 / 7</td>
+            <td style="padding: 1rem;"><span style="display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background-color: rgba(242, 54, 69, 0.15); color: var(--color-red); border: 1px solid rgba(242, 54, 69, 0.3);">非多頭主升段 (非交易區間) - 觀望不宜介入</span></td>
+            <td style="padding: 1rem;"><a href="./meta_vcp_analysis.html" style="color: #2962ff; text-decoration: none; font-weight: 600;">打開深度報告 <i class="fa-solid fa-arrow-up-right-from-square"></i></a></td>
+        </tr>
+        
+
+        <tr style="border-bottom: 1px solid #2a2e39;">
+            <td style="padding: 1rem; font-weight: bold;">7</td>
+            <td style="padding: 1rem; font-weight: bold; color: #fff;">AVGO</td>
+            <td style="padding: 1rem; font-family: monospace;">$414.14</td>
+            <td style="padding: 1rem; color: var(--color-green); font-weight: bold; font-size: 1.1rem;">7 / 7</td>
+            <td style="padding: 1rem;"><span style="display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background-color: rgba(8, 153, 129, 0.15); color: var(--color-green); border: 1px solid rgba(8, 153, 129, 0.3);">強勢主升段 (第二階段) - 高度符合買入型態</span></td>
+            <td style="padding: 1rem;"><a href="./avgo_vcp_analysis.html" style="color: #2962ff; text-decoration: none; font-weight: 600;">打開深度報告 <i class="fa-solid fa-arrow-up-right-from-square"></i></a></td>
+        </tr>
+        
+
+        <tr style="border-bottom: 1px solid #2a2e39;">
+            <td style="padding: 1rem; font-weight: bold;">8</td>
+            <td style="padding: 1rem; font-weight: bold; color: #fff;">NFLX</td>
+            <td style="padding: 1rem; font-family: monospace;">$88.60</td>
+            <td style="padding: 1rem; color: var(--color-red); font-size: 1.1rem;">0 / 7</td>
+            <td style="padding: 1rem;"><span style="display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background-color: rgba(242, 54, 69, 0.15); color: var(--color-red); border: 1px solid rgba(242, 54, 69, 0.3);">非多頭主升段 (非交易區間) - 觀望不宜介入</span></td>
+            <td style="padding: 1rem;"><a href="./nflx_vcp_analysis.html" style="color: #2962ff; text-decoration: none; font-weight: 600;">打開深度報告 <i class="fa-solid fa-arrow-up-right-from-square"></i></a></td>
+        </tr>
+        
+
+        <tr style="border-bottom: 1px solid #2a2e39;">
+            <td style="padding: 1rem; font-weight: bold;">9</td>
+            <td style="padding: 1rem; font-weight: bold; color: #fff;">AMD</td>
+            <td style="padding: 1rem; font-family: monospace;">$467.51</td>
+            <td style="padding: 1rem; color: var(--color-green); font-weight: bold; font-size: 1.1rem;">7 / 7</td>
+            <td style="padding: 1rem;"><span style="display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background-color: rgba(8, 153, 129, 0.15); color: var(--color-green); border: 1px solid rgba(8, 153, 129, 0.3);">強勢主升段 (第二階段) - 高度符合買入型態</span></td>
+            <td style="padding: 1rem;"><a href="./amd_vcp_analysis.html" style="color: #2962ff; text-decoration: none; font-weight: 600;">打開深度報告 <i class="fa-solid fa-arrow-up-right-from-square"></i></a></td>
+        </tr>
+        
+
+        <tr style="border-bottom: 1px solid #2a2e39;">
+            <td style="padding: 1rem; font-weight: bold;">10</td>
+            <td style="padding: 1rem; font-weight: bold; color: #fff;">UUUU</td>
+            <td style="padding: 1rem; font-family: monospace;">$18.04</td>
+            <td style="padding: 1rem; color: var(--color-red); font-size: 1.1rem;">4 / 7</td>
+            <td style="padding: 1rem;"><span style="display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background-color: rgba(242, 54, 69, 0.15); color: var(--color-red); border: 1px solid rgba(242, 54, 69, 0.3);">非多頭主升段 (非交易區間) - 觀望不宜介入</span></td>
+            <td style="padding: 1rem;"><a href="./uuuu_vcp_analysis.html" style="color: #2962ff; text-decoration: none; font-weight: 600;">打開深度報告 <i class="fa-solid fa-arrow-up-right-from-square"></i></a></td>
+        </tr>
+        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </body>
+    </html>
+    
